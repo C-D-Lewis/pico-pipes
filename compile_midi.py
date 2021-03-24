@@ -142,7 +142,7 @@ data = {
 }
 
 # Tracks to play
-play_tracks = [0, 1]
+play_tracks = [0]
 
 # Add a new event to the timeline
 def add_event(track, is_on, pitch, at):
@@ -170,6 +170,7 @@ def main():
         'num_notes': len(instrument.notes)
       }
       non_drum_instruments.append(selected)
+      print(selected)
   
   # Select instruments from constant list
   for i in range(0, len(play_tracks)):
@@ -188,11 +189,19 @@ def main():
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['at']) 
 
   # Write to CSV file
-  with open('timeline.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(['track', 'is_on', 'pitch', 'at'])
+  with open('timeline_build.py', 'w', newline='') as file:
+    file.write("timeline = [\n")
     for event in data['timeline']:
-      writer.writerow([event['track'], event['is_on'], event['pitch'], event['at']])
+      file.write("{'t':")
+      file.write(f"{event['track']}")
+      file.write(",'o':")
+      file.write(f"{event['is_on']}")
+      file.write(",'p':")
+      file.write(f"{event['pitch']}")
+      file.write(",'a':")
+      file.write(f"{round(event['at'], 3)}")
+      file.write('},\n')
+    file.write(']\n')
 
 if '__main__' in __name__:
   main()

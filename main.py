@@ -1,6 +1,8 @@
 from machine import Pin
 import utime
 
+import timeline_build
+
 # Relationship between MIDI pitch number (note) and frequency (Hz)
 # https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
 pitch_lookup = {
@@ -117,7 +119,7 @@ class Motor:
   def __init__(self, gpio_step, gpio_dir):
     # Static state
     self.is_on = False
-    self.last_step_us = utime.ticks_us()
+    self.last_step_ticks = utime.ticks_us()
     self.pin_step = Pin(gpio_step, Pin.OUT)
     self.pin_dir = Pin(gpio_dir, Pin.OUT)
     self.update(False, 60)
@@ -130,55 +132,60 @@ class Motor:
     if pitch not in pitch_lookup:
       return
 
-    # Turn 'off'
     self.is_on = is_on
-    if not self.is_on:
-      self.delay_us = 999999999
-      self.pitch = 0
+    self.pitch = pitch
+
+    # Turn 'off'
+    if self.is_on == False:
       return
 
     freq_hz = round(pitch_lookup[pitch])
     self.delay_us = 1000000 / freq_hz
-    self.pitch = pitch
 
   def tick(self):
     now = utime.ticks_us()
-    if (now - self.last_step_us) > self.delay_us:
-      self.last_step_us = now
+
+    # Off, don't actuate
+    # if self.is_on == False:
+    #   return
+
+    if (utime.ticks_diff(now, self.last_step_ticks)) > self.delay_us:
+      self.last_step_ticks = now
 
       self.pin_step.high()
       utime.sleep_us(5)
       self.pin_step.low()
 
-motor_1 = Motor(2, 3)
+motor_0 = Motor(2, 3)
 
-timeline = [
-  { 'at': 1, 'is_on': True, 'pitch': 60 },
-  { 'at': 2, 'is_on': True, 'pitch': 65 },
-  { 'at': 3, 'is_on': True, 'pitch': 70 },
-  { 'at': 4, 'is_on': False, 'pitch': 0 },
-]
+play_timeline = timeline_build.timeline
 
 # Program loop
 def main():
-  start_time = utime.time()
+  time_start_ms = 0
+  time_now_ms = 0
 
   # First note
   event_index = 0
   current_event = timeline[event_index]
-  motor_1.update(current_event['is_on'], current_event['pitch'])
+  motor_0.update(current_event['o'], current_event['p'])
 
+  ticks_start = utime.ticks_us()
   while True:
-    motor_1.tick()
+    motor_0.tick()
+
+    # Artifical time counter
+    if (utime.ticks_diff(utime.ticks_us(), ticks_start) > 1000):
+      time_now_ms += 1
+      ticks_start = utime.ticks_us()
 
     # Time for next note?
-    playhead = utime.time()
-    if (playhead - start_time ) > current_event['at']:
-      event_index += 1
+    if (time_now_ms - time_start_ms) > (current_event['a'] * 1000):
       current_event = timeline[event_index]
+      event_index += 1
       print(current_event)
 
       # Update motors
-      motor_1.update(current_event['is_on'], current_event['pitch'])
+      motor_0.update(current_event['o'], current_event['p'])
 
 main()
