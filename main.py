@@ -1,6 +1,7 @@
 from machine import Pin
 import utime
 
+# Order: track, is_on, pitch, at
 import timeline_build
 
 # Relationship between MIDI pitch number (note) and frequency (Hz)
@@ -158,8 +159,6 @@ class Motor:
 
 motor_0 = Motor(2, 3)
 
-play_timeline = timeline_build.timeline
-
 # Program loop
 def main():
   time_start_ms = 0
@@ -167,8 +166,8 @@ def main():
 
   # First note
   event_index = 0
-  current_event = timeline[event_index]
-  motor_0.update(current_event['o'], current_event['p'])
+  current_event = timeline_build.timeline[event_index]
+  motor_0.update(current_event[1], current_event[2])
 
   ticks_start = utime.ticks_us()
   while True:
@@ -180,12 +179,12 @@ def main():
       ticks_start = utime.ticks_us()
 
     # Time for next note?
-    if (time_now_ms - time_start_ms) > (current_event['a'] * 1000):
-      current_event = timeline[event_index]
+    if (time_now_ms - time_start_ms) > (current_event[3] * 1000):
+      current_event = timeline_build.timeline[event_index]
       event_index += 1
       print(current_event)
 
       # Update motors
-      motor_0.update(current_event['o'], current_event['p'])
+      motor_0.update(current_event[1], current_event[2])
 
 main()

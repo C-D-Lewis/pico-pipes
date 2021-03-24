@@ -170,12 +170,12 @@ def main():
         'num_notes': len(instrument.notes)
       }
       non_drum_instruments.append(selected)
-      print(selected)
+      print(f"found: {selected}")
   
   # Select instruments from constant list
   for i in range(0, len(play_tracks)):
     data['instruments'].append(non_drum_instruments[play_tracks[i]])
-    print(data['instruments'][i])
+    print(f"using: {data['instruments'][i]}")
 
   # Build list of events of on and off for all tracks
   for (i, instrument) in enumerate(data['instruments']):
@@ -188,19 +188,19 @@ def main():
   # Sort timeline by 'at' for list of events
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['at']) 
 
-  # Write to CSV file
+  # Write to Python file - must be as small as possible
   with open('timeline_build.py', 'w', newline='') as file:
     file.write("timeline = [\n")
     for event in data['timeline']:
-      file.write("{'t':")
+      file.write("[")
       file.write(f"{event['track']}")
-      file.write(",'o':")
-      file.write(f"{event['is_on']}")
-      file.write(",'p':")
+      file.write(",")
+      file.write(f"{1 if event['is_on'] == True else 0}")
+      file.write(",")
       file.write(f"{event['pitch']}")
-      file.write(",'a':")
-      file.write(f"{round(event['at'], 3)}")
-      file.write('},\n')
+      file.write(",")
+      file.write(f"{round(event['at'], 2)}")
+      file.write('],\n')
     file.write(']\n')
 
 if '__main__' in __name__:
