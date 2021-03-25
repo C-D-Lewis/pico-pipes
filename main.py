@@ -1,8 +1,12 @@
+import gc
+print("initial mem_free: {}".format(gc.mem_free()))
+
 from machine import Pin
 import utime
 
 # Order: track, is_on, pitch, at
-import timeline_build
+import build
+print("w/build mem_free: {}".format(gc.mem_free()))
 
 # Relationship between MIDI pitch number (note) and frequency (Hz)
 # https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
@@ -116,6 +120,7 @@ pitch_lookup = {
   21: 27.5,       # A0
 }
 
+# Motor class allowing non-blocking control
 class Motor:
   def __init__(self, gpio_step, gpio_dir):
     # Static state
@@ -129,6 +134,7 @@ class Motor:
     self.pin_dir.low()
     self.pin_step.low()
 
+  # Update the state, pitch, and delay for this motor
   def update(self, is_on, pitch):
     if pitch not in pitch_lookup:
       return
@@ -136,38 +142,47 @@ class Motor:
     self.is_on = is_on
     self.pitch = pitch
 
-    # Turn 'off'
-    if self.is_on == False:
-      return
+    if self.is_on == True:
+      freq_hz = round(pitch_lookup[self.pitch])
+      self.delay_us = 1000000 / freq_hz
 
-    freq_hz = round(pitch_lookup[pitch])
-    self.delay_us = 1000000 / freq_hz
-
+  # Every main program loop, see if a step is needed
   def tick(self):
     now = utime.ticks_us()
-
-    # Off, don't actuate
-    # if self.is_on == False:
-    #   return
 
     if (utime.ticks_diff(now, self.last_step_ticks)) > self.delay_us:
       self.last_step_ticks = now
 
-      self.pin_step.high()
-      utime.sleep_us(5)
-      self.pin_step.low()
+      if self.is_on == True:
+        self.pin_step.high()
+      utime.sleep_us(1)
+      if self.is_on == True:
+        self.pin_step.low()
+
+# Event class handling a row from the build table
+class Event:
+  def __init__(self, blob):
+    self.track = blob[0]
+    self.is_on = blob[1]
+    self.pitch = blob[2]
+    self.at = blob[3]
+
+  def __str__(self):
+    return "track: {0} is_on: {1} pitch: {2} at: {3}".format(self.track, self.is_on, self.pitch, self.at)
 
 motor_0 = Motor(2, 3)
 
 # Program loop
 def main():
+  print("main start mem_free: {}".format(gc.mem_free()))
   time_start_ms = 0
   time_now_ms = 0
 
   # First note
   event_index = 0
-  current_event = timeline_build.timeline[event_index]
-  motor_0.update(current_event[1], current_event[2])
+  current_event = Event(build.timeline[event_index])
+  motor_0.update(current_event.is_on, current_event.pitch)
+  time_now_ms = current_event.at * 1000
 
   ticks_start = utime.ticks_us()
   while True:
@@ -179,12 +194,12 @@ def main():
       ticks_start = utime.ticks_us()
 
     # Time for next note?
-    if (time_now_ms - time_start_ms) > (current_event[3] * 1000):
-      current_event = timeline_build.timeline[event_index]
+    if (time_now_ms - time_start_ms) > (current_event.at * 1000):
       event_index += 1
-      print(current_event)
+      current_event = Event(build.timeline[event_index])
+      print(str(current_event))
 
       # Update motors
-      motor_0.update(current_event[1], current_event[2])
+      motor_0.update(current_event.is_on, current_event.pitch)
 
 main()

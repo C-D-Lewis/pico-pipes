@@ -3,6 +3,8 @@ import sys
 import time
 import csv
 
+PICO_MAX_BUILD_SIZE = 30000
+
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
   2: 'Bright Acoustic Piano',
@@ -135,14 +137,13 @@ PROGRAM_MAP = {
 }
 
 file_name = sys.argv[1]
+play_tracks = sys.argv[2].split(',')
+print(f"file_name: {file_name}, play_tracks: {play_tracks}")
 
 data = {
   'instruments': [],
   'timeline': []
 }
-
-# Tracks to play
-play_tracks = [0]
 
 # Add a new event to the timeline
 def add_event(track, is_on, pitch, at):
@@ -155,27 +156,30 @@ def add_event(track, is_on, pitch, at):
 
 # The main function
 def main():
-  print({ 'file_name': file_name })
-
   # Load midi file
   midi_data = pretty_midi.PrettyMIDI(file_name)
+  print()
   
   # Read instruments - skip the drums
   non_drum_instruments = []
-  for instrument in midi_data.instruments:
+  for i, instrument in enumerate(midi_data.instruments):
     if not instrument.is_drum:
+      program_name = PROGRAM_MAP[instrument.program] if instrument.program > 0 else 'Unknown'
+      num_notes = len(instrument.notes)
       selected = {
         'pm_instrument': instrument,
-        'program_name': PROGRAM_MAP[instrument.program] if instrument.program > 0 else 'Unknown',
-        'num_notes': len(instrument.notes)
+        'program_name': program_name,
+        'num_notes': num_notes,
+        'summary': f"Track {i} ({program_name}): {num_notes} notes"
       }
       non_drum_instruments.append(selected)
-      print(f"found: {selected}")
+      print(selected['summary'])
   
   # Select instruments from constant list
+  print()
   for i in range(0, len(play_tracks)):
-    data['instruments'].append(non_drum_instruments[play_tracks[i]])
-    print(f"using: {data['instruments'][i]}")
+    data['instruments'].append(non_drum_instruments[int(play_tracks[i])])
+    print(f"using: {data['instruments'][i]['summary']}")
 
   # Build list of events of on and off for all tracks
   for (i, instrument) in enumerate(data['instruments']):
@@ -188,20 +192,27 @@ def main():
   # Sort timeline by 'at' for list of events
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['at']) 
 
+  # Compile Python table
+  output = "timeline = [\n"
+  for event in data['timeline']:
+    output += "["
+    output += f"{event['track']}"
+    output += ","
+    output += f"{1 if event['is_on'] == True else 0}"
+    output += ","
+    output += f"{event['pitch']}"
+    output += ","
+    output += f"{round(event['at'], 3)}"
+    output += '],\n'
+  output += ']\n'
+  print(f"\nbuild size: {len(output)} bytes")
+
+  if len(output) > PICO_MAX_BUILD_SIZE:
+    print(f"\n  [WARNING]: Timeline may be too large to run on Pico")
+
   # Write to Python file - must be as small as possible
-  with open('timeline_build.py', 'w', newline='') as file:
-    file.write("timeline = [\n")
-    for event in data['timeline']:
-      file.write("[")
-      file.write(f"{event['track']}")
-      file.write(",")
-      file.write(f"{1 if event['is_on'] == True else 0}")
-      file.write(",")
-      file.write(f"{event['pitch']}")
-      file.write(",")
-      file.write(f"{round(event['at'], 2)}")
-      file.write('],\n')
-    file.write(']\n')
+  with open('build.py', 'w', newline='') as file:
+    file.write(output)
 
 if '__main__' in __name__:
   main()
