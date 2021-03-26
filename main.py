@@ -47,7 +47,11 @@ def main():
         print(str(current_event))
 
         # Load next row
-        next_row = file.readline().rstrip('\n').split(',')
+        next_row = file.readline()
+        if not next_row:
+          print('fin')
+          return
+        next_row = next_row.rstrip('\n').split(',')
         next_event = Event(next_row)
 
 main()
