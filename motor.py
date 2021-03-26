@@ -10,6 +10,7 @@ class Motor:
     self.last_step_ticks = utime.ticks_us()
     self.pin_step = Pin(gpio_step, Pin.OUT)
     self.pin_dir = Pin(gpio_dir, Pin.OUT)
+    self.delay_us = 99999
     self.update(False, 60)
 
     # Hardware init

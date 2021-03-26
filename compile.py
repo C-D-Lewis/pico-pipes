@@ -3,8 +3,6 @@ import sys
 import time
 import csv
 
-PICO_MAX_BUILD_SIZE = 20000
-
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
   2: 'Bright Acoustic Piano',
@@ -193,9 +191,8 @@ def main():
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['at']) 
 
   # Compile Python table
-  output = "timeline = [\n"
+  output = ""
   for event in data['timeline']:
-    output += "["
     output += f"{event['track']}"
     output += ","
     output += f"{1 if event['is_on'] == True else 0}"
@@ -203,15 +200,11 @@ def main():
     output += f"{event['pitch']}"
     output += ","
     output += f"{round(event['at'], 3)}"
-    output += '],\n'
-  output += ']\n'
+    output += '\n'
   print(f"\nbuild size: {len(output)} bytes")
 
-  if len(output) > PICO_MAX_BUILD_SIZE:
-    print(f"\n  [WARNING]: Timeline may be too large to run on Pico")
-
   # Write to Python file - must be as small as possible
-  with open('build.py', 'w', newline='') as file:
+  with open('timeline.csv', 'w', newline='') as file:
     file.write(output)
 
 if '__main__' in __name__:

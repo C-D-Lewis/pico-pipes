@@ -1,22 +1,19 @@
 import gc
 print("initial mem_free: {}".format(gc.mem_free()))
 
-# Order: track, is_on, pitch, at
-import build
-print("w/build mem_free: {}".format(gc.mem_free()))
-
 from machine import Pin
 import motor
 import timer
-print("all imports mem_free: {}".format(gc.mem_free()))
+gc.collect()
+print("post imports gc mem_free: {}".format(gc.mem_free()))
 
 # Event class handling a row from the build table
 class Event:
-  def __init__(self, blob):
-    self.track = blob[0]
-    self.is_on = blob[1]
-    self.pitch = blob[2]
-    self.at = blob[3]
+  def __init__(self, row):
+    self.track = int(row[0])
+    self.is_on = int(row[1]) == 1
+    self.pitch = int(row[2])
+    self.at = float(row[3])
 
   def __str__(self):
     return "track: {0} is_on: {1} pitch: {2} at: {3}".format(self.track, self.is_on, self.pitch, self.at)
@@ -28,26 +25,29 @@ timer = timer.Timer()
 def main():
   print("main start mem_free: {}".format(gc.mem_free()))
 
-  # First note
-  event_index = 0
-  current_event = Event(build.timeline[event_index])
-  motor_0.update(current_event.is_on, current_event.pitch)
+  # Load CSV file line by line
+  with open('./timeline.csv', 'r') as file:
+    current_row = file.readline().rstrip('\n').split(',')
+    next_row = file.readline().rstrip('\n').split(',')
 
-  while True:
-    timer.tick()
-    motor_0.tick()
+    # First note
+    current_event = Event(current_row)
+    next_event = Event(next_row)
+    motor_0.update(current_event.is_on, current_event.pitch)
 
-    # Time for next note?
-    if timer.get_ms_now() > (current_event.at * 1000):
-      event_index += 1
+    while True:
+      timer.tick()
+      motor_0.tick()
 
-      # For now, ignore next event which is the same is_on (i.e: mutiple notes)
-      next_event = Event(build.timeline[event_index + 1])
-      if current_event.is_on != next_event.is_on:
-        current_event = Event(build.timeline[event_index])
-      # print(str(current_event))
+      # Time for next note?
+      if timer.get_ms_now() > (next_event.at * 1000):
+        # Update motors
+        current_event = next_event
+        motor_0.update(current_event.is_on, current_event.pitch)
+        print(str(current_event))
 
-      # Update motors
-      motor_0.update(current_event.is_on, current_event.pitch)
+        # Load next row
+        next_row = file.readline().rstrip('\n').split(',')
+        next_event = Event(next_row)
 
 main()
