@@ -3,7 +3,7 @@ import sys
 import time
 import csv
 
-PICO_MAX_BUILD_SIZE = 30000
+PICO_MAX_BUILD_SIZE = 20000
 
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',

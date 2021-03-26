@@ -37,3 +37,13 @@ Copy the main and built files:
 cp main.py /pyboard
 cp build.py /pyboard
 ```
+
+Then play the built file:
+
+```shell
+repl
+```
+
+```python
+import main
+```
