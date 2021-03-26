@@ -3,6 +3,8 @@ import sys
 import time
 import csv
 
+OUTPUT_NAME = 'midi.csv'
+
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
   2: 'Bright Acoustic Piano',
@@ -204,7 +206,7 @@ def main():
   print(f"\nbuild size: {len(output)} bytes")
 
   # Write to Python file - must be as small as possible
-  with open('timeline.csv', 'w', newline='') as file:
+  with open(OUTPUT_NAME, 'w', newline='') as file:
     file.write(output)
 
 if '__main__' in __name__:

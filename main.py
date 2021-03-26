@@ -7,6 +7,8 @@ import timer
 gc.collect()
 print("post imports gc mem_free: {}".format(gc.mem_free()))
 
+INPUT_PATH = './midi.csv'
+
 # Event class handling a row from the build table
 class Event:
   def __init__(self, row):
@@ -26,14 +28,11 @@ def main():
   print("main start mem_free: {}".format(gc.mem_free()))
 
   # Load CSV file line by line
-  with open('./timeline.csv', 'r') as file:
-    current_row = file.readline().rstrip('\n').split(',')
-    next_row = file.readline().rstrip('\n').split(',')
-
-    # First note
-    current_event = Event(current_row)
-    next_event = Event(next_row)
-    motor_0.update(current_event.is_on, current_event.pitch)
+  with open(INPUT_PATH, 'r') as file:
+    # Pre-load first note
+    next_event = Event(file.readline().rstrip('\n').split(','))
+    motor_0.update(next_event.is_on, next_event.pitch)
+    next_event = Event(file.readline().rstrip('\n').split(','))
 
     while True:
       timer.tick()
@@ -42,16 +41,15 @@ def main():
       # Time for next note?
       if timer.get_ms_now() > (next_event.at * 1000):
         # Update motors
-        current_event = next_event
-        motor_0.update(current_event.is_on, current_event.pitch)
-        print(str(current_event))
+        motor_0.update(next_event.is_on, next_event.pitch)
+        # print(str(next_event))
 
         # Load next row
         next_row = file.readline()
         if not next_row:
           print('fin')
           return
-        next_row = next_row.rstrip('\n').split(',')
-        next_event = Event(next_row)
+
+        next_event = Event(next_row.rstrip('\n').split(','))
 
 main()
