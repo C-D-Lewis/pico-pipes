@@ -193,7 +193,7 @@ def main():
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['at']) 
 
   # Compile Python table
-  output = ""
+  output = "track,is_on,pitch,on_at\n"
   for event in data['timeline']:
     output += f"{event['track']}"
     output += ","
