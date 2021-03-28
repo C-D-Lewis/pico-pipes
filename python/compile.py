@@ -146,10 +146,9 @@ data = {
 }
 
 # Add a new event to the timeline
-def add_event(track, is_on, pitch, on_at, off_at):
+def add_event(track, pitch, on_at, off_at):
   data['timeline'].append({
     'track': track,
-    'is_on': is_on,
     'pitch': pitch,
     'on_at': on_at,
     'off_at': off_at
@@ -185,17 +184,15 @@ def main():
   # Build list of events of on and off for all tracks
   for (i, instrument) in enumerate(data['instruments']):
     for note in instrument['pm_instrument'].notes:
-      add_event(i, True, note.pitch, note.start, note.end)
+      add_event(i, note.pitch, note.start, note.end)
 
   # Sort timeline by 'at' for list of events
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['on_at'])
 
   # Compile Python table
-  output = "track,is_on,pitch,on_at,off_at\n"
+  output = "track,pitch,on_at,off_at\n"
   for event in data['timeline']:
     output += f"{event['track']}"
-    output += ","
-    output += f"{1 if event['is_on'] == True else 0}"
     output += ","
     output += f"{event['pitch']}"
     output += ","
