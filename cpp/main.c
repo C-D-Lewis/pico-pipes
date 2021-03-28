@@ -1,13 +1,13 @@
 #include "main.h"
 
-const uint MOTOR_1_PIN = 2;
-const uint MOTOR_2_PIN = 3;
+const int MOTOR_1_PIN = 2;
+const int MOTOR_2_PIN = 3;
 
 ////////////////////////////////////////////// Events //////////////////////////////////////////////
 
 struct Event {
-  uint track;
-  uint pitch;
+  int track;
+  int pitch;
   float on_at;
   float off_at;
 };
@@ -15,7 +15,7 @@ struct Event {
 /**
  * Create Event structure.
  */
-struct Event event_create(uint track, uint pitch, float on_at, float off_at) {
+struct Event event_create(int track, int pitch, float on_at, float off_at) {
   struct Event e;
   e.track = track;
   e.pitch = pitch;
@@ -30,7 +30,7 @@ struct Event event_create(uint track, uint pitch, float on_at, float off_at) {
 /**
  * Get frequency for a given MIDI pitch value.
  */
-float pitch_get_freq(uint16_t pitch) {
+float pitch_get_freq(int pitch) {
   if (pitch > PITCH_TABLE_SIZE) {
     printf("Pitch not in range: %d\n", pitch);
     return 9999999;
@@ -42,9 +42,8 @@ float pitch_get_freq(uint16_t pitch) {
 ////////////////////////////////////////////// Motors //////////////////////////////////////////////
 
 struct Motor {
-  uint pin;
-  uint is_on;
-  uint pitch;
+  int pin;
+  int is_on;
   uint64_t last_step_us;
   uint64_t step_delay_us;
   uint64_t note_start_us;
@@ -54,13 +53,13 @@ struct Motor {
 /**
  * Setup a Motor data structure.
  */
-struct Motor motor_create(uint pin) {
+struct Motor motor_create(int pin) {
   struct Motor m;
   m.pin = pin;
   m.is_on = FALSE;
-  m.pitch = 0;
   m.last_step_us = 0;
   m.step_delay_us = 0;
+  m.note_start_us = 0;
   m.note_duration_ms = 0;
 
   // GPIO init
@@ -71,41 +70,41 @@ struct Motor motor_create(uint pin) {
 };
 
 /**
- * Tick a motor.
+ * Update a motor with a new note event.
  */
-void motor_tick(struct Motor m) {
+void motor_set_event(struct Motor *m, struct Event e) {
+  m->is_on = TRUE;
+
+  // TODO: Duration control
   uint64_t now_us = to_us_since_boot(get_absolute_time());
+  m->note_start_us = now_us;
+  m->note_duration_ms = (e.off_at - e.on_at) * 1000;
 
-  // Turn off?
-  if (now_us - m.note_start_us > (m.note_duration_ms * 1000)) {
-    m.is_on = FALSE;
-  }
-
-  // Take a step if step delay elapsed
-  if (now_us - m.last_step_us > m.step_delay_us) {
-    m.last_step_us = now_us;
-
-    if (m.is_on == TRUE) {
-      gpio_put(m.pin, 1);
-      sleep_us(5);
-      gpio_put(m.pin, 0);
-    }
-  }
+  int freq_hz = pitch_get_freq(e.pitch);
+  m->step_delay_us = 880; //1000000 / freq_hz;
 };
 
 /**
- * Update a motor with a new note event.
+ * Tick a motor.
  */
-void motor_set_event(struct Motor m, struct Event e) {
-  m.is_on = TRUE;
-  m.pitch = e.pitch;
-  m.note_duration_ms = (e.off_at - e.on_at) * 1000;
-
+void motor_tick(struct Motor *m) {
   uint64_t now_us = to_us_since_boot(get_absolute_time());
-  m.note_start_us = now_us;
 
-  uint freq_hz = pitch_get_freq(m.pitch);
-  m.step_delay_us = 1000000 / freq_hz;
+  // Turn off?
+  if (now_us - m->note_start_us > (m->note_duration_ms * 1000)) {
+    m->is_on = FALSE;
+  }
+
+  // Take a step if step delay elapsed
+  if (now_us - m->last_step_us > m->step_delay_us) {
+    m->last_step_us = now_us;
+
+    if (m->is_on == TRUE) {
+      gpio_put(m->pin, 1);
+      sleep_us(5);
+      gpio_put(m->pin, 0);
+    }
+  }
 };
 
 //////////////////////////////////////////// Main loop /////////////////////////////////////////////
@@ -115,13 +114,14 @@ void motor_set_event(struct Motor m, struct Event e) {
  */
 int main() {
   struct Motor motor1 = motor_create(MOTOR_1_PIN);
-  struct Event e = event_create(0, 60, 5.0, 7.0);
 
   // TODO: Wait until note start time
   sleep_ms(2000);
-  motor_set_event(motor1, e);
+
+  struct Event e = event_create(0, 60, 5.0, 7.0);
+  motor_set_event(&motor1, e);
 
   while (true) {
-    motor_tick(motor1);
+    motor_tick(&motor1);
   }
 };
