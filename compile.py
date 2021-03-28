@@ -146,12 +146,13 @@ data = {
 }
 
 # Add a new event to the timeline
-def add_event(track, is_on, pitch, at):
+def add_event(track, is_on, pitch, on_at, off_at):
   data['timeline'].append({
     'track': track,
     'is_on': is_on,
     'pitch': pitch,
-    'at': at
+    'on_at': on_at,
+    'off_at': off_at
   })
 
 # The main function
@@ -184,16 +185,13 @@ def main():
   # Build list of events of on and off for all tracks
   for (i, instrument) in enumerate(data['instruments']):
     for note in instrument['pm_instrument'].notes:
-      # On event
-      add_event(i, True, note.pitch, note.start)
-      # Off event
-      add_event(i, False, note.pitch, note.end)
+      add_event(i, True, note.pitch, note.start, note.end)
 
   # Sort timeline by 'at' for list of events
-  data['timeline'] = sorted(data['timeline'], key = lambda p: p['at']) 
+  data['timeline'] = sorted(data['timeline'], key = lambda p: p['on_at'])
 
   # Compile Python table
-  output = "track,is_on,pitch,on_at\n"
+  output = "track,is_on,pitch,on_at,off_at\n"
   for event in data['timeline']:
     output += f"{event['track']}"
     output += ","
@@ -201,7 +199,9 @@ def main():
     output += ","
     output += f"{event['pitch']}"
     output += ","
-    output += f"{round(event['at'], 3)}"
+    output += f"{round(event['on_at'], 3)}"
+    output += ","
+    output += f"{round(event['off_at'], 3)}"
     output += '\n'
   print(f"\nbuild size: {len(output)} bytes")
 

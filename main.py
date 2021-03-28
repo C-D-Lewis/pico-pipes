@@ -15,22 +15,26 @@ class Event:
     self.track = int(row[0])
     self.is_on = int(row[1]) == 1
     self.pitch = int(row[2])
-    self.at = float(row[3])
+    self.on_at = float(row[3])
+    self.off_at = float(row[4])
 
   def __str__(self):
-    return "track: {0} is_on: {1} pitch: {2} at: {3}".format(self.track, self.is_on, self.pitch, self.at)
+    return "track: {0} is_on: {1} pitch: {2} on_at: {3} off_at: {4}".format(self.track, self.is_on, self.pitch, self.on_at, self.off_at)
 
 motor_0 = motor.Motor(2)
 motor_1 = motor.Motor(3)
 timer = timer.Timer()
 
 # Assign next event to a motor that isn't doing anything
-# TODO: Motors need to know when to set own is_on to off to free up
-# def assign_event(event):
-#   for m in motors:
-#     if m.is_on == False:
-#       m.update(event.is_on, event.pitch)
-#       return
+def assign_event(event):
+  if not motor_0.is_on:
+    print('0 {}'.format(event))
+    motor_0.update(event)
+  elif not motor_1.is_on:
+    print('1 {}'.format(event))
+    motor_1.update(event)
+  else:
+    print('X {}'.format(event))
 
 # Program loop
 def main():
@@ -50,7 +54,7 @@ def main():
       motor_1.tick()
 
       # Time for next note?
-      if timer.get_ms_now() > (next_event.at * 1000):
+      if timer.get_ms_now() > (next_event.on_at * 1000):
         # print(str(next_event))
 
         # Set track on appropriate motor
@@ -58,6 +62,9 @@ def main():
           motor_0.update(next_event)
         elif next_event.track == 1:
           motor_1.update(next_event)
+
+        # Or find a motor not doing anything
+        # assign_event(next_event)
 
         # Load next row
         next_row = file.readline()

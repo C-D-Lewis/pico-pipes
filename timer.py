@@ -15,3 +15,7 @@ class Timer:
   # Get milliseconds passed
   def get_ms_now(self):
     return self.time_now_ms
+
+  # Rest the timer
+  def reset(self):
+    self.time_now_ms = 0
