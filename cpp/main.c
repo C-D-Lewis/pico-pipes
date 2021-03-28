@@ -3,6 +3,16 @@
 const int MOTOR_1_PIN = 2;
 const int MOTOR_2_PIN = 3;
 
+////////////////////////////////////////////// Helpers /////////////////////////////////////////////
+
+/**
+ * Get milliseconds since boot
+ */
+uint64_t get_ms_now() {
+  uint64_t now_us = to_us_since_boot(get_absolute_time());
+  return now_us / 1000;
+};
+
 ////////////////////////////////////////////// Events //////////////////////////////////////////////
 
 struct Event {
@@ -75,11 +85,12 @@ struct Motor motor_create(int pin) {
 void motor_set_event(struct Motor *m, struct Event e) {
   m->is_on = TRUE;
 
-  // TODO: Duration control
+  // Duration control
   uint64_t now_us = to_us_since_boot(get_absolute_time());
   m->note_start_us = now_us;
   m->note_duration_ms = (e.off_at - e.on_at) * 1000;
 
+  // Set delay from pitch frequency
   int freq_hz = pitch_get_freq(e.pitch);
   m->step_delay_us = 880; //1000000 / freq_hz;
 };
@@ -109,19 +120,39 @@ void motor_tick(struct Motor *m) {
 
 //////////////////////////////////////////// Main loop /////////////////////////////////////////////
 
+static const int NUM_EVENTS = 3;
+static const struct Event events[NUM_EVENTS] = {
+  event_create(0, 60, 5.0, 7.0),
+  event_create(0, 65, 7.1, 9.0),
+  event_create(0, 75, 9.1, 11.0)
+};
+
 /**
  * Entry point.
  */
 int main() {
   struct Motor motor1 = motor_create(MOTOR_1_PIN);
 
-  // TODO: Wait until note start time
-  sleep_ms(2000);
+  // First note
+  motor_set_event(&motor1, events[0]);
 
-  struct Event e = event_create(0, 60, 5.0, 7.0);
-  motor_set_event(&motor1, e);
+  // Next event
+  int event_index = 1;
 
   while (true) {
     motor_tick(&motor1);
+
+    // End?
+    if (event_index == NUM_EVENTS) {
+      return;
+    }
+
+    // Update next event
+    uint64_t now_ms = get_ms_now();
+    if (now_ms > events[event_index].on_at * 1000) {
+      motor_set_event(&motor1, events[event_index]);
+
+      event_index += 1;
+    }
   }
 };
