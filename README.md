@@ -10,7 +10,7 @@ Install depenencies:
 pip3 install --user pretty_midi
 ```
 
-## Prepate a MIDI file
+## Prepare a MIDI file
 
 First, compile the MIDI into an importable Python table of note events:
 
