@@ -33,6 +33,8 @@ python3 compile.py midi/still_alive.mid 0,1
 
 ## Prepare Raspberry Pi Pico C++ SDK
 
+Instructions cheat sheet for Mac OS (see Raspberry Pi docs for more OS examples):
+
 ```shell
 # From home directory
 cd && mkdir pico
@@ -55,13 +57,14 @@ brew install arm-none-eabi-gcc
 cd cpp
 mkdir build
 cd build
+
 cmake ..
 ```
 
 
 ## Build the Pico firmware
 
-The MIDI is compiled into a C header, `cpp/notes.h`. For example:
+The MIDI is compiled into a C header, `notes.h`. For example:
 
 ```cpp
 // GENERATED WITH compile.py
@@ -84,8 +87,10 @@ static const float* NOTE_TABLE[] = {
 Build a Pico firmware file:
 
 ```shell
-cd cpp/build
-make
+mkdir build
+cd build
+
+make -j4
 ```
 
 Finally, copy to the Pico by connecting while 'BOOTSEL' is pressed:

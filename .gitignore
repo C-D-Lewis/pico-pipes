@@ -2,5 +2,5 @@
 __pycache__
 *.csv
 build.py
-cpp/build
-cpp/notes.h
+build/*
+notes.h
