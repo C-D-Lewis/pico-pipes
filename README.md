@@ -54,7 +54,6 @@ brew tap ArmMbed/homebrew-formulae
 brew install arm-none-eabi-gcc
 
 # In this repo, configure for GCC
-cd cpp
 mkdir build
 cd build
 
@@ -87,7 +86,6 @@ static const float* NOTE_TABLE[] = {
 Build a Pico firmware file:
 
 ```shell
-mkdir build
 cd build
 
 make -j4
