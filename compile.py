@@ -192,6 +192,7 @@ def main():
   # Compile C header file table
   output = '// GENERATED WITH compile.py\n\n'
   output += f"#define NUM_NOTES {len(data['timeline'])}\n\n"
+  output += '// Order is track, pitch, on_at, off_at\n'
   output += 'static const float* NOTE_TABLE[] = {\n'
   for event in data['timeline']:
     output += "  (float[]){ "
@@ -199,9 +200,9 @@ def main():
     output += ", "
     output += f"{event['pitch']}"
     output += ", "
-    output += f"{event['on_at']}"
+    output += f"{round(event['on_at'], 5)}"
     output += ", "
-    output += f"{event['off_at']}"
+    output += f"{round(event['off_at'], 5)}"
     output += ' },\n'
   output += '};\n'
   print(f"\nbuild size: {len(output)} bytes")

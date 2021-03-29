@@ -2,12 +2,12 @@
 
 Playing MIDI files on stepper motors via Raspberry Pi Pico. A Python script
 using `pretty_midi` loads a MIDI file and generates a `notes.h` C header file
-defining the notes as a table of floats.
+defining the notes as a table of `float` tracks, pitches, and timings.
 
 
 ## Setup
 
-Install depenencies:
+Install dependencies:
 
 ```shell
 pip3 install --user pretty_midi
@@ -61,7 +61,27 @@ cmake ..
 
 ## Build the Pico firmware
 
-The MIDI is compiled into a C header, `cpp/notes.h`.
+The MIDI is compiled into a C header, `cpp/notes.h`. For example:
+
+```cpp
+// GENERATED WITH compile.py
+
+#define NUM_NOTES 2040
+
+// Order is track, pitch, on_at, off_at
+static const float* NOTE_TABLE[] = {
+  (float[]){ 0, 73, 1.33333, 1.41667 },
+  (float[]){ 1, 57, 1.33333, 1.41667 },
+  (float[]){ 0, 72, 1.41667, 1.5 },
+  (float[]){ 1, 56, 1.41667, 1.5 },
+  (float[]){ 0, 71, 1.5, 1.58333 },
+  (float[]){ 1, 55, 1.5, 1.58333 },
+  (float[]){ 0, 70, 1.58333, 1.66666 },
+
+  // And so on...
+```
+
+Build a Pico firmware file:
 
 ```shell
 cd cpp/build
