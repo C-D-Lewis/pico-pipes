@@ -3,7 +3,7 @@ import sys
 import time
 import csv
 
-OUTPUT_NAME = './cpp/notes.h'
+OUTPUT_NAME = './notes.h'
 
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
