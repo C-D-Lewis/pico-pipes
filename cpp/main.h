@@ -5,3 +5,4 @@
 #define FALSE 0
 
 #include "pitches.h"
+#include "notes.h"

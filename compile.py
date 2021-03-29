@@ -3,7 +3,7 @@ import sys
 import time
 import csv
 
-OUTPUT_NAME = 'midi.csv'
+OUTPUT_NAME = './cpp/notes.h'
 
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
@@ -189,17 +189,21 @@ def main():
   # Sort timeline by 'at' for list of events
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['on_at'])
 
-  # Compile Python table
-  output = "track,pitch,on_at,off_at\n"
+  # Compile C header file table
+  output = '// GENERATED WITH compile.py\n\n'
+  output += f"#define NUM_NOTES {len(data['timeline'])}\n\n"
+  output += 'static const float* NOTE_TABLE[] = {\n'
   for event in data['timeline']:
+    output += "  (float[]){ "
     output += f"{event['track']}"
-    output += ","
+    output += ", "
     output += f"{event['pitch']}"
-    output += ","
-    output += f"{round(event['on_at'], 3)}"
-    output += ","
-    output += f"{round(event['off_at'], 3)}"
-    output += '\n'
+    output += ", "
+    output += f"{event['on_at']}"
+    output += ", "
+    output += f"{event['off_at']}"
+    output += ' },\n'
+  output += '};\n'
   print(f"\nbuild size: {len(output)} bytes")
 
   # Write to Python file - must be as small as possible

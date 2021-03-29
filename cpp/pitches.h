@@ -52,9 +52,9 @@ static const float pitch_table[128] = {
   130.81,     // 48 >  C3
   138.59,     // 49 >  C#3/Db3
   146.83,     // 50 >  D3
-  155.56,     // 51 >  D#3/Eb3
-  164.81,     // 52 >  E3
-  174.61,     // 53 >  F3
+  311.13,     // 51 >  D#3/Eb3 << Resonant, octave up (was 155.56)
+  329.63,     // 52 >  E3      << Resonant, octave up (was 164.81)
+  349.23,     // 53 >  F3      << Resonant, octave up (was 174.61)
   185,        // 54 >  F#3/Gb3
   196,        // 55 >  G3
   207.65,     // 56 >  G#3/Ab3

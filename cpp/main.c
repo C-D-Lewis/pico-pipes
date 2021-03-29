@@ -1,8 +1,5 @@
 #include "main.h"
 
-const int MOTOR_1_PIN = 2;
-const int MOTOR_2_PIN = 3;
-
 ////////////////////////////////////////////// Helpers /////////////////////////////////////////////
 
 /**
@@ -13,9 +10,16 @@ uint64_t get_ms_now() {
   return now_us / 1000;
 };
 
-////////////////////////////////////////////// Events //////////////////////////////////////////////
+/**
+ * Get frequency for a given MIDI pitch value.
+ */
+float pitch_get_freq(int pitch) {
+  return (pitch > PITCH_TABLE_SIZE) ? 1 : pitch_table[pitch];
+};
 
-struct Event {
+////////////////////////////////////////////// Notes ///////////////////////////////////////////////
+
+struct Note {
   int track;
   int pitch;
   float on_at;
@@ -23,30 +27,16 @@ struct Event {
 };
 
 /**
- * Create Event structure.
+ * Create Note structure.
  */
-struct Event event_create(int track, int pitch, float on_at, float off_at) {
-  struct Event e;
-  e.track = track;
-  e.pitch = pitch;
-  e.on_at = on_at;
-  e.off_at = off_at;
+struct Note note_create(const float *row) {
+  struct Note n;
+  n.track = row[0];
+  n.pitch = row[1];
+  n.on_at = row[2];
+  n.off_at = row[3];
 
-  return e;
-};
-
-////////////////////////////////////////////// Pitches /////////////////////////////////////////////
-
-/**
- * Get frequency for a given MIDI pitch value.
- */
-float pitch_get_freq(int pitch) {
-  if (pitch > PITCH_TABLE_SIZE) {
-    printf("Pitch not in range: %d\n", pitch);
-    return 9999999;
-  }
-
-  return pitch_table[pitch];
+  return n;
 };
 
 ////////////////////////////////////////////// Motors //////////////////////////////////////////////
@@ -82,17 +72,15 @@ struct Motor motor_create(int pin) {
 /**
  * Update a motor with a new note event.
  */
-void motor_set_event(struct Motor *m, struct Event e) {
+void motor_set_note(struct Motor *m, struct Note n) {
   m->is_on = TRUE;
 
   // Duration control
-  uint64_t now_us = to_us_since_boot(get_absolute_time());
-  m->note_start_us = now_us;
-  m->note_duration_ms = (e.off_at - e.on_at) * 1000;
+  m->note_start_us = to_us_since_boot(get_absolute_time());
+  m->note_duration_ms = (n.off_at - n.on_at) * 1000;
 
   // Set delay from pitch frequency
-  int freq_hz = pitch_get_freq(e.pitch);
-  m->step_delay_us = 880; //1000000 / freq_hz;
+  m->step_delay_us = 1000000 / pitch_get_freq(n.pitch);
 };
 
 /**
@@ -120,39 +108,39 @@ void motor_tick(struct Motor *m) {
 
 //////////////////////////////////////////// Main loop /////////////////////////////////////////////
 
-static const int NUM_EVENTS = 3;
-static const struct Event events[NUM_EVENTS] = {
-  event_create(0, 60, 5.0, 7.0),
-  event_create(0, 65, 7.1, 9.0),
-  event_create(0, 75, 9.1, 11.0)
-};
+const int MOTOR_1_PIN = 2;
+const int MOTOR_2_PIN = 3;
 
 /**
  * Entry point.
  */
 int main() {
+  // Create motors
   struct Motor motor1 = motor_create(MOTOR_1_PIN);
+  struct Motor motor2 = motor_create(MOTOR_2_PIN);
 
-  // First note
-  motor_set_event(&motor1, events[0]);
-
-  // Next event
-  int event_index = 1;
+  // Pre-load first note
+  int note_index = 0;
+  struct Note next_note = note_create(NOTE_TABLE[note_index]);
 
   while (true) {
     motor_tick(&motor1);
+    motor_tick(&motor2);
 
     // End?
-    if (event_index == NUM_EVENTS) {
-      return;
-    }
+    if (note_index == NUM_NOTES - 1) return 0;
 
     // Update next event
-    uint64_t now_ms = get_ms_now();
-    if (now_ms > events[event_index].on_at * 1000) {
-      motor_set_event(&motor1, events[event_index]);
+    if (get_ms_now() > next_note.on_at * 1000) {
+      // One motor per track
+      if (next_note.track == 0) {
+        motor_set_note(&motor1, next_note);
+      } else if (next_note.track == 1) {
+        motor_set_note(&motor2, next_note);
+      }
 
-      event_index += 1;
+      note_index += 1;
+      next_note = note_create(NOTE_TABLE[note_index]);
     }
   }
 };
