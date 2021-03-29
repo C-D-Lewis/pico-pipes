@@ -1,4 +1,4 @@
-# midi-motors
+# pico-pipes
 
 Playing MIDI files on stepper motors via Raspberry Pi Pico. A Python script
 using `pretty_midi` loads a MIDI file and generates a `notes.h` C header file
