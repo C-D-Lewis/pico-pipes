@@ -137,8 +137,7 @@ PROGRAM_MAP = {
 }
 
 file_name = sys.argv[1]
-play_tracks = sys.argv[2].split(',')
-print(f"file_name: {file_name}, play_tracks: {play_tracks}")
+print(f"file_name: {file_name}")
 
 data = {
   'instruments': [],
@@ -174,9 +173,14 @@ def main():
       }
       non_drum_instruments.append(selected)
       print(selected['summary'])
-  
+
+  # No tracks supplied, stop here
+  if not sys.argv[2]:
+    sys.exit(1)
+
   # Select instruments from constant list
   print()
+  play_tracks = sys.argv[2].split(',')
   for i in range(0, len(play_tracks)):
     data['instruments'].append(non_drum_instruments[int(play_tracks[i])])
     print(f"using: {data['instruments'][i]['summary']}")

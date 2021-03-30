@@ -106,18 +106,40 @@ void motor_tick(struct Motor *m) {
   }
 };
 
+/////////////////////////////////////////////// LED ////////////////////////////////////////////////
+
+// const int LED_PIN = 25;
+
+// void led_init() {
+//   gpio_init(LED_PIN);
+//   gpio_set_dir(LED_PIN, GPIO_OUT);
+// };
+
+// void led_update(state) {
+//   // LED needs own timer
+//   gpio_put(m->pin, 1);
+//   sleep_us(5);
+//   gpio_put(m->pin, 0);
+// }
+
 //////////////////////////////////////////// Main loop /////////////////////////////////////////////
 
 const int MOTOR_1_PIN = 2;
 const int MOTOR_2_PIN = 3;
+const int MOTOR_3_PIN = 4;
+const int MOTOR_4_PIN = 5;
 
 /**
  * Entry point.
  */
 int main() {
+  // led_init();
+
   // Create motors
   struct Motor motor1 = motor_create(MOTOR_1_PIN);
   struct Motor motor2 = motor_create(MOTOR_2_PIN);
+  struct Motor motor3 = motor_create(MOTOR_3_PIN);
+  struct Motor motor4 = motor_create(MOTOR_4_PIN);
 
   // Pre-load first note
   int note_index = 0;
@@ -126,6 +148,8 @@ int main() {
   while (true) {
     motor_tick(&motor1);
     motor_tick(&motor2);
+    motor_tick(&motor3);
+    motor_tick(&motor4);
 
     // End?
     if (note_index == NUM_NOTES - 1) return 0;
@@ -137,6 +161,10 @@ int main() {
         motor_set_note(&motor1, next_note);
       } else if (next_note.track == 1) {
         motor_set_note(&motor2, next_note);
+      } else if (next_note.track == 2) {
+        motor_set_note(&motor3, next_note);
+      } else if (next_note.track == 3) {
+        motor_set_note(&motor4, next_note);
       }
 
       note_index += 1;
