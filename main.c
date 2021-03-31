@@ -106,22 +106,6 @@ void motor_tick(struct Motor *m) {
   }
 };
 
-/////////////////////////////////////////////// LED ////////////////////////////////////////////////
-
-// const int LED_PIN = 25;
-
-// void led_init() {
-//   gpio_init(LED_PIN);
-//   gpio_set_dir(LED_PIN, GPIO_OUT);
-// };
-
-// void led_update(state) {
-//   // LED needs own timer
-//   gpio_put(m->pin, 1);
-//   sleep_us(5);
-//   gpio_put(m->pin, 0);
-// }
-
 //////////////////////////////////////////// Main loop /////////////////////////////////////////////
 
 const int MOTOR_1_PIN = 2;
@@ -133,8 +117,6 @@ const int MOTOR_4_PIN = 5;
  * Entry point.
  */
 int main() {
-  // led_init();
-
   // Create motors
   struct Motor motor1 = motor_create(MOTOR_1_PIN);
   struct Motor motor2 = motor_create(MOTOR_2_PIN);
