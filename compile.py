@@ -172,7 +172,9 @@ def main():
         'summary': f"Track {i} ({program_name}): {num_notes} notes"
       }
       non_drum_instruments.append(selected)
-      print(selected['summary'])
+
+  for i, instrument in enumerate(non_drum_instruments):
+    print(f"{i}: {instrument['summary']}")
 
   # No tracks supplied, stop here
   if not sys.argv[2]:

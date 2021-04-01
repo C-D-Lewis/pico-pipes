@@ -50,7 +50,7 @@ static const float pitch_table[128] = {
   116.54,     // 46 >  A#2/Bb2
   123.47,     // 47 >  B2
   130.81,     // 48 >  C3
-  138.59,     // 49 >  C#3/Db3
+  277.18,     // 49 >  C#3/Db3 << Resonant, octave up (was 138.59)
   293.66,     // 50 >  D3      << Resonant, octave up (was 146.83)
   311.13,     // 51 >  D#3/Eb3 << Resonant, octave up (was 155.56)
   329.63,     // 52 >  E3      << Resonant, octave up (was 164.81)
