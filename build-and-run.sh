@@ -13,7 +13,7 @@ cd build/ && make && cd -
 
 # Wait for board to connect
 echo ""
-echo "Waiting for Pico to connected..."
+echo "Waiting for Pico to connect..."
 until [ -d /Volumes/RPI-RP2/ ]
 do
   sleep 1
