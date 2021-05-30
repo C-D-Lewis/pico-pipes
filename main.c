@@ -108,10 +108,10 @@ void motor_tick(struct Motor *m) {
 
 //////////////////////////////////////////// Main loop /////////////////////////////////////////////
 
-const int MOTOR_1_PIN = 2;
-const int MOTOR_2_PIN = 3;
-const int MOTOR_3_PIN = 4;
-const int MOTOR_4_PIN = 5;
+const int MOTOR_1_PIN = 5;
+const int MOTOR_2_PIN = 4;
+const int MOTOR_3_PIN = 3;
+const int MOTOR_4_PIN = 2;
 
 /**
  * Entry point.
