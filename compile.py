@@ -220,6 +220,7 @@ def main():
 
   # Build for Thumby
   thumby_output = output = '# GENERATED WITH compile.py\n\n'
+  thumby_output += 'FILE_NAME = ' + f"'{file_name.split('/')[-1]}'\n"
   thumby_output += '# Order is pitch, on_at, off_at\n'
   thumby_output += 'TRACK = [\n'
   for event in data['timeline']:
