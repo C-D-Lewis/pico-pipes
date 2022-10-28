@@ -83,6 +83,10 @@ static const float* NOTE_TABLE[] = {
   // And so on...
 ```
 
+Additionally, a file for inclusion in a Thumby project is generated as
+`track.py`. See [thumby-dev](https://github.com/c-d-lewis/thumby-dev) for more
+information.
+
 Build a Pico firmware file:
 
 ```shell

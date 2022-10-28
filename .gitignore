@@ -3,4 +3,7 @@ __pycache__
 *.csv
 build.py
 build/*
+
+# outputs
 notes.h
+track.py

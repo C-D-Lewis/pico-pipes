@@ -4,6 +4,7 @@ import time
 import csv
 
 OUTPUT_NAME = './notes.h'
+OUTPUT_NAME_THUMBY = './track.py'
 
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
@@ -196,7 +197,7 @@ def main():
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['on_at'])
 
   # Compile C header file table
-  output = '// GENERATED WITH compile.py\n\n'
+  output = '$ GENERATED WITH compile.py\n\n'
   output += f"#define NUM_NOTES {len(data['timeline'])}\n\n"
   output += '// Order is track, pitch, on_at, off_at\n'
   output += 'static const float* NOTE_TABLE[] = {\n'
@@ -216,6 +217,26 @@ def main():
   # Write to Python file - must be as small as possible
   with open(OUTPUT_NAME, 'w', newline='') as file:
     file.write(output)
+
+  # Build for Thumby
+  thumby_output = output = '# GENERATED WITH compile.py\n\n'
+  thumby_output += '# Order is pitch, on_at, off_at\n'
+  thumby_output += 'TRACK = [\n'
+  for event in data['timeline']:
+    thumby_output += "  ["
+    thumby_output += f"{event['track']}"
+    thumby_output += ", "
+    thumby_output += f"{event['pitch']}"
+    thumby_output += ", "
+    thumby_output += f"{round(event['on_at'], 5)}"
+    thumby_output += ", "
+    thumby_output += f"{round(event['off_at'], 5)}"
+    thumby_output += ' ],\n'
+  thumby_output += ']\n'
+
+  # Write file of notes for thumby-dev/midi-player
+  with open(OUTPUT_NAME_THUMBY, 'w', newline='') as file:
+    file.write(thumby_output)
 
 if '__main__' in __name__:
   main()
