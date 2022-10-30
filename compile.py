@@ -7,6 +7,8 @@ import csv
 OUTPUT_NAME = './notes.h'
 # Output track file for Thumby
 OUTPUT_NAME_THUMBY = './notes.py'
+# Recommended max notes for Thumby memory (+comilation memory required)
+THUMBY_MAX = 1000
 # Map of program indexes to names
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
@@ -220,13 +222,18 @@ def main():
   # Write to Python file - must be as small as possible
   with open(OUTPUT_NAME, 'w', newline='') as file:
     file.write(output)
+    print(f"Wrote {OUTPUT_NAME}")
+
+  if len(data['timeline']) > THUMBY_MAX:
+    print('WARNING: Trimming to recommended maximum notes for Thumby')
+  thumby_timeline = data['timeline'][0:THUMBY_MAX]
 
   # Build for Thumby
   thumby_output = output = '# GENERATED WITH pico-pipes/compile.py\n\n'
   thumby_output += 'FILE_NAME = ' + f"'{file_name.split('/')[-1]}'\n\n"
   thumby_output += '# Order is track, pitch, on_at, off_at\n'
   thumby_output += 'TRACK = [\n'
-  for event in data['timeline']:
+  for event in thumby_timeline:
     thumby_output += "  ["
     thumby_output += f"{event['track']}"
     thumby_output += ", "
@@ -241,6 +248,7 @@ def main():
   # Write file of notes for thumby-dev/midi-player
   with open(OUTPUT_NAME_THUMBY, 'w', newline='') as file:
     file.write(thumby_output)
+    print(f"Wrote {OUTPUT_NAME_THUMBY}")
 
 if '__main__' in __name__:
   main()
