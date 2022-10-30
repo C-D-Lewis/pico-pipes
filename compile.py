@@ -8,7 +8,7 @@ OUTPUT_NAME = './notes.h'
 # Output track file for Thumby
 OUTPUT_NAME_THUMBY = './notes.py'
 # Recommended max notes for Thumby memory (+comilation memory required)
-THUMBY_MAX = 1000
+THUMBY_MAX = 800
 # Map of program indexes to names
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
