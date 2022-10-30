@@ -3,9 +3,11 @@ import sys
 import time
 import csv
 
+# Output track file for pico
 OUTPUT_NAME = './notes.h'
-OUTPUT_NAME_THUMBY = './track.py'
-
+# Output track file for Thumby
+OUTPUT_NAME_THUMBY = './notes.py'
+# Map of program indexes to names
 PROGRAM_MAP = {
   1: 'Acoustic Grand Piano',
   2: 'Bright Acoustic Piano',
@@ -178,7 +180,8 @@ def main():
     print(f"{i}: {instrument['summary']}")
 
   # No tracks supplied, stop here
-  if not sys.argv[2]:
+  if len(sys.argv) < 3:
+    print("\nChoose program indexes from above as extra program parameters")
     sys.exit(1)
 
   # Select instruments from constant list
@@ -197,7 +200,7 @@ def main():
   data['timeline'] = sorted(data['timeline'], key = lambda p: p['on_at'])
 
   # Compile C header file table
-  output = '$ GENERATED WITH compile.py\n\n'
+  output = '$ GENERATED WITH pico-pipes/compile.py\n\n'
   output += f"#define NUM_NOTES {len(data['timeline'])}\n\n"
   output += '// Order is track, pitch, on_at, off_at\n'
   output += 'static const float* NOTE_TABLE[] = {\n'
@@ -219,9 +222,9 @@ def main():
     file.write(output)
 
   # Build for Thumby
-  thumby_output = output = '# GENERATED WITH compile.py\n\n'
-  thumby_output += 'FILE_NAME = ' + f"'{file_name.split('/')[-1]}'\n"
-  thumby_output += '# Order is pitch, on_at, off_at\n'
+  thumby_output = output = '# GENERATED WITH pico-pipes/compile.py\n\n'
+  thumby_output += 'FILE_NAME = ' + f"'{file_name.split('/')[-1]}'\n\n"
+  thumby_output += '# Order is track, pitch, on_at, off_at\n'
   thumby_output += 'TRACK = [\n'
   for event in data['timeline']:
     thumby_output += "  ["
